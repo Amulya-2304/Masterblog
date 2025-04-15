@@ -4,40 +4,38 @@ import json
 app = Flask(__name__)
 
 
-# Function to load posts from a JSON file
 def load_posts():
+    """Load blog posts from JSON file."""
     try:
-        with open('posts.json', 'r') as file:
+        with open('posts.json', 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
-        return []  # Return an empty list if the file does not exist
+        return []
 
 
-# Function to save posts to a JSON file
 def save_posts(posts):
-    with open('posts.json', 'w') as file:
-        json.dump(posts, file)
+    """Save blog posts to JSON file."""
+    with open('posts.json', 'w', encoding='utf-8') as file:
+        json.dump(posts, file, indent=4)
 
 
-# Route to view all blog posts
 @app.route('/')
 def index():
     posts = load_posts()
     return render_template('index.html', posts=posts)
 
 
-# Route to add a new blog post
 @app.route('/add', methods=['GET', 'POST'])
 def add():
     if request.method == 'POST':
+        posts = load_posts()
         new_post = {
-            'id': len(load_posts()) + 1,  # Simple ID generation based on current length
+            'id': len(posts) + 1,
             'author': request.form.get('author'),
             'title': request.form.get('title'),
             'content': request.form.get('content'),
-            'likes': 0  # Initialize likes to 0
+            'likes': 0
         }
-        posts = load_posts()
         posts.append(new_post)
         save_posts(posts)
         return redirect(url_for('index'))
@@ -45,7 +43,6 @@ def add():
     return render_template('add.html')
 
 
-# Route to delete a blog post
 @app.route('/delete/<int:post_id>')
 def delete(post_id):
     posts = load_posts()
@@ -58,7 +55,6 @@ def delete(post_id):
     return redirect(url_for('index'))
 
 
-# Route to update a blog post
 @app.route('/update/<int:post_id>', methods=['GET', 'POST'])
 def update(post_id):
     posts = load_posts()
@@ -77,7 +73,6 @@ def update(post_id):
     return render_template('update.html', post=post)
 
 
-# Route to increment the "likes" for a post
 @app.route('/like/<int:post_id>', methods=['POST'])
 def like(post_id):
     posts = load_posts()
@@ -86,7 +81,7 @@ def like(post_id):
     if post is None:
         return "Post not found", 404
 
-    post['likes'] += 1  # Increment the likes count
+    post['likes'] += 1
     save_posts(posts)
 
     return redirect(url_for('index'))
